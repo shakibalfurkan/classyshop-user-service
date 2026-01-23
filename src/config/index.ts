@@ -15,7 +15,6 @@ export default {
     refresh_token_secret: process.env.JWT_REFRESH_TOKEN_SECRET,
   },
 
-  user_service_url: process.env.USER_SERVICE_URL,
   internal_service_secret: process.env.INTERNAL_SERVICE_SECRET,
 
   allowed_origins: process.env.ALLOWED_ORIGINS,
