@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -14,20 +8,105 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  role      Role     @default(CUSTOMER)
-  isActive  Boolean  @default(true)
+  id    String    @id
+  email String    @unique
+  role  UserRoles
+
+  isActive Boolean @default(true)
+
+  isBlocked Boolean   @default(false)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  customerProfile CustomerProfile?
+  vendorProfile   VendorProfile?
+  adminProfile    AdminProfile?
+
   @@index([email])
-  @@index([role])
+  @@index([isActive])
+  @@index([isBlocked])
   @@map("users")
 }
 
-enum Role {
-  CUSTOMER
-  VENDOR
+model CustomerProfile {
+  id          String    @id @default(uuid())
+  userId      String    @unique
+  firstName   String
+  lastName    String
+  phone       String?
+  avatar      String?
+  dateOfBirth DateTime?
+
+  shippingAddresses Json[] @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("customer_profiles")
+}
+
+model VendorProfile {
+  id        String  @id @default(uuid())
+  userId    String  @unique
+  firstName String
+  lastName  String
+  phone     String
+  avatar    String?
+
+  shopName    String @unique
+  shopEmail   String
+  shopPhone   String
+  shopAddress Json
+
+  stripeConnectId    String? @unique
+  onboardingComplete Boolean @default(false)
+
+  isVerified Boolean   @default(false)
+  verifiedAt DateTime?
+
+  commissionRate Float @default(10.0)
+
+  totalProducts Int   @default(0)
+  salesCount    Int   @default(0)
+  totalRevenue  Float @default(0)
+  rating        Float @default(0)
+  reviewCount   Int   @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([shopName])
+  @@index([isVerified])
+  @@map("vendor_profiles")
+}
+
+model AdminProfile {
+  id        String  @id @default(uuid())
+  userId    String  @unique
+  firstName String
+  lastName  String
+  phone     String?
+  avatar    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("admin_profiles")
+}
+
+enum UserRoles {
+  SUPER_ADMIN
   ADMIN
+  MODERATOR
+  VENDOR
+  CUSTOMER
 }
