@@ -8,8 +8,8 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 
 import config from "./config/index.js";
-import globalErrorHandler from "./middlewares/error.middleware.js";
-import notFoundHandler from "./middlewares/notFound.middleware.js";
+import globalErrorHandler from "./middlewares/globalErrorHandler.js";
+import notFoundHandler from "./middlewares/notFound.js";
 import helmet from "helmet";
 import morgan from "morgan";
 // import { morganStream } from "./lib/logger.js";
@@ -36,11 +36,6 @@ export async function createApp(): Promise<Application> {
   //   } else {
   //     app.use(morgan("combined", { stream: morganStream }));
   //   }
-
-  app.use((req, _res, next) => {
-    req.id = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-    next();
-  });
 
   app.get("/", (_req: Request, res: Response) => {
     res.status(200).json({

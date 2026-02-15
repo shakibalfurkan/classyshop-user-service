@@ -282,7 +282,6 @@ const globalErrorHandler: ErrorRequestHandler = (
     method: req.method,
     path: req.path,
     ip: req.ip,
-    requestId: req.id,
   };
 
   //   if (statusCode >= 500) {

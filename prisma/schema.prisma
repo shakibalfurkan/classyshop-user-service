@@ -14,9 +14,8 @@ model User {
 
   isActive Boolean @default(true)
 
-  isBlocked Boolean   @default(false)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
+  isBlocked Boolean @default(false)
+  isDeleted Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -55,7 +54,7 @@ model VendorProfile {
   userId    String  @unique
   firstName String
   lastName  String
-  phone     String
+  phone     String?
   avatar    String?
 
   shopName    String @unique
