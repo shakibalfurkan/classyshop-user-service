@@ -7,6 +7,7 @@ import config from "../config/index.js";
 import { Prisma } from "../generated/prisma/client.js";
 import handleZodError from "../errors/handleZodError.js";
 import { AppError } from "../errors/AppError.js";
+import logger from "../utils/logger.js";
 
 const globalErrorHandler: ErrorRequestHandler = (
   err,
@@ -271,6 +272,8 @@ const globalErrorHandler: ErrorRequestHandler = (
     message,
     errorType,
     errors: errorSources,
+    requestId: req.requestId!,
+    timestamp: new Date().toISOString(),
     ...(config.node_env === "development" && { stack: err?.stack }),
   };
 
@@ -281,32 +284,32 @@ const globalErrorHandler: ErrorRequestHandler = (
     isOperational,
     method: req.method,
     path: req.path,
-    ip: req.ip,
+    ip: (req.headers["x-forwarded-for"] as string) || req.ip,
+    requestId: req.requestId,
   };
 
-  //   if (statusCode >= 500) {
-  //     logger.error({
-  //       message: `${message} - ${err?.message}`,
-  //       error: err,
-  //       stack: err.stack,
-  //       ...logMetadata,
-  //     });
-  //   } else if (statusCode >= 400) {
-  //     logger.warn({
-  //       message: `${message} - ${err?.message}`,
-  //       ...logMetadata,
-  //     });
-  //   }
+  if (statusCode >= 500) {
+    logger.error({
+      message: `${message} - ${err?.message}`,
+      error: err,
+      stack: err.stack,
+      ...logMetadata,
+    });
+  } else if (statusCode >= 400) {
+    logger.warn({
+      message: `${message} - ${err?.message}`,
+      ...logMetadata,
+    });
+  }
 
   // Handle non-operational errors (programmer errors)
   if (!isOperational) {
-    // logger.error({
-    //   message: "Non-operational error occurred - this should be investigated",
-    //   error: err,
-    //   ...logMetadata,
-    // });
+    logger.error({
+      message: "Non-operational error occurred - this should be investigated",
+      error: err,
+      ...logMetadata,
+    });
 
-    // In production, don't expose internal error details
     if (config.node_env === "production") {
       errorResponse.message = "Internal server error";
       errorResponse.errors = [
