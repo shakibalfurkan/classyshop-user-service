@@ -1,5 +1,6 @@
 import { createApp } from "./app.js";
 import config from "./config/index.js";
+import logger from "./utils/logger.js";
 // import logger from "./lib/logger.js";
 
 const port = process.env.PORT || config.port;
@@ -11,13 +12,12 @@ async function main(): Promise<void> {
 
     // Start server
     app.listen(port, () => {
-      //   logger.info(`ClassyShop Auth service is listening on port: ${port}`);
-      console.log(
+      logger.info(
         `ClassyShop ${config.serviceName} is listening on port: ${port}`,
       );
     });
   } catch (err) {
-    // logger.error("Failed to start server:", err);
+    logger.error("Failed to start server:", err);
   }
 }
 

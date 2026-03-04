@@ -6,37 +6,34 @@ import type { IUserProfileData } from "./user.interface.js";
 const createUserProfile = async (payload: IUserProfileData) => {
   const { id, firstName, lastName, email, role, shopData } = payload;
 
-  const isUserExists = await prisma.user.findUnique({
-    where: {
-      email,
-    },
-  });
+  return await prisma.$transaction(async (tx) => {
+    const isUserExists = await tx.user.findUnique({
+      where: {
+        email,
+      },
+    });
 
-  if (isUserExists) {
-    throw new BadRequestError("User with this email already exists", "email");
-  }
+    if (isUserExists) {
+      throw new BadRequestError("User with this email already exists", "email");
+    }
 
-  const user = await prisma.user.create({
-    data: {
-      id,
-      email,
-      role,
-    },
-  });
+    const user = await tx.user.create({
+      data: {
+        id,
+        email,
+        role,
+      },
+    });
 
-  switch (role) {
-    case UserRoles.CUSTOMER:
-      await prisma.customerProfile.create({
+    if (role === UserRoles.CUSTOMER) {
+      await tx.customerProfile.create({
         data: {
           userId: user.id,
           firstName,
           lastName,
         },
       });
-
-      break;
-
-    case UserRoles.VENDOR:
+    } else if (role === UserRoles.VENDOR) {
       if (!shopData) {
         throw new BadRequestError(
           "Shop data is required for vendor registration",
@@ -44,7 +41,7 @@ const createUserProfile = async (payload: IUserProfileData) => {
         );
       }
 
-      await prisma.vendorProfile.create({
+      await tx.vendorProfile.create({
         data: {
           userId: user.id,
           firstName,
@@ -59,29 +56,24 @@ const createUserProfile = async (payload: IUserProfileData) => {
               state: shopData.shopAddress.state,
               postalCode: shopData.shopAddress.postalCode,
               country: shopData.shopAddress.country,
-              lat: shopData.shopAddress.coordinates?.lat,
-              lng: shopData.shopAddress.coordinates?.lng,
+              lat: shopData.shopAddress.coordinates?.lat ?? null,
+              lng: shopData.shopAddress.coordinates?.lng ?? null,
             },
           },
         },
       });
-      break;
-
-    case UserRoles.ADMIN:
-    case UserRoles.SUPER_ADMIN:
-    case UserRoles.MODERATOR:
-      await prisma.adminProfile.create({
-        data: {
-          userId: user.id,
-          firstName,
-          lastName,
-        },
+    } else if (
+      [UserRoles.ADMIN, UserRoles.SUPER_ADMIN, UserRoles.MODERATOR].includes(
+        role,
+      )
+    ) {
+      await tx.adminProfile.create({
+        data: { userId: user.id, firstName, lastName },
       });
-      break;
+    }
 
-    default:
-      break;
-  }
+    return user;
+  });
 };
 
 export const UserService = {
