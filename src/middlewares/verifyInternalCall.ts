@@ -5,7 +5,7 @@ import config from "../config/index.js";
 
 const verifyInternalCall = async (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction,
 ) => {
   const signature = req.headers["x-internal-signature"];

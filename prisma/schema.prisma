@@ -39,7 +39,7 @@ model CustomerProfile {
   avatar      String?
   dateOfBirth DateTime?
 
-  shippingAddresses Json[] @default([])
+  shippingAddresses ShippingAddress[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -47,6 +47,31 @@ model CustomerProfile {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("customer_profiles")
+}
+
+model ShippingAddress {
+  id String @id @default(uuid())
+
+  recipientName String
+  street        String
+  apartment     String?
+  city          String
+  state         String
+  postalCode    String
+  country       String
+
+  isDefault Boolean @default(false)
+  label     String?
+
+  customerProfileId String
+  customerProfile   CustomerProfile @relation(fields: [customerProfileId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerProfileId])
+  @@index([isDefault])
+  @@map("shipping_addresses")
 }
 
 model VendorProfile {
@@ -57,16 +82,13 @@ model VendorProfile {
   phone     String?
   avatar    String?
 
-  shopName    String @unique
+  shopName    String       @unique
   shopEmail   String
   shopPhone   String
-  shopAddress Json
+  shopAddress ShopAddress?
 
   stripeConnectId    String? @unique
   onboardingComplete Boolean @default(false)
-
-  isVerified Boolean   @default(false)
-  verifiedAt DateTime?
 
   commissionRate Float @default(10.0)
 
@@ -82,8 +104,29 @@ model VendorProfile {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([shopName])
-  @@index([isVerified])
   @@map("vendor_profiles")
+}
+
+model ShopAddress {
+  id         String @id @default(uuid())
+  street     String
+  city       String
+  state      String
+  postalCode String
+  country    String
+
+  lat Float?
+  lng Float?
+
+  vendorProfileId String        @unique
+  vendorProfile   VendorProfile @relation(fields: [vendorProfileId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([city])
+  @@index([country])
+  @@map("shop_addresses")
 }
 
 model AdminProfile {

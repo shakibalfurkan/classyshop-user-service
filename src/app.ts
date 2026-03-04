@@ -12,18 +12,19 @@ import globalErrorHandler from "./middlewares/globalErrorHandler.js";
 import notFoundHandler from "./middlewares/notFound.js";
 import helmet from "helmet";
 import morgan from "morgan";
-// import { morganStream } from "./lib/logger.js";
 import formatUptime from "./utils/formatUptime.js";
-import { UserRoutes } from "./modules/user/user.route.js";
 
-export async function createApp(): Promise<Application> {
+import { morganStream } from "./utils/logger.js";
+import globalRouter from "./routes/index.js";
+
+export function createApp(): Application {
   const app: Application = express();
 
   // Middleware setup
   app.use(helmet());
   app.use(
     cors({
-      origin: config.allowed_origins?.split(","),
+      origin: config.allowed_origins,
       credentials: true,
     }),
   );
@@ -31,11 +32,11 @@ export async function createApp(): Promise<Application> {
   app.use(express.urlencoded({ extended: true, limit: "10mb" }));
   app.use(cookieParser());
 
-  //   if (config.isDevelopment) {
-  //     app.use(morgan("dev", { stream: morganStream }));
-  //   } else {
-  //     app.use(morgan("combined", { stream: morganStream }));
-  //   }
+  if (config.node_env === "production") {
+    app.use(morgan("combined", { stream: morganStream }));
+  } else {
+    app.use(morgan("dev"));
+  }
 
   app.get("/", (_req: Request, res: Response) => {
     res.status(200).json({
@@ -44,7 +45,7 @@ export async function createApp(): Promise<Application> {
     });
   });
 
-  app.get("/health", (_req, res) => {
+  app.get("/health", (_req: Request, res: Response) => {
     res.status(200).json({
       success: true,
       message: "Service is healthy",
@@ -54,7 +55,7 @@ export async function createApp(): Promise<Application> {
     });
   });
 
-  app.use("/api/v1", UserRoutes);
+  app.use("/api/v1", globalRouter);
 
   app.use(notFoundHandler);
 
