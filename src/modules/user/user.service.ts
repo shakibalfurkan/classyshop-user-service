@@ -33,15 +33,15 @@ const createUserProfile = async (payload: IUserProfileData) => {
           lastName,
         },
       });
-    } else if (role === UserRoles.VENDOR) {
+    } else if (role === UserRoles.SELLER) {
       if (!shopData) {
         throw new BadRequestError(
-          "Shop data is required for vendor registration",
+          "Shop data is required for seller registration",
           "shopData",
         );
       }
 
-      await tx.vendorProfile.create({
+      await tx.sellerProfile.create({
         data: {
           userId: user.id,
           firstName,

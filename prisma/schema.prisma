@@ -21,7 +21,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   customerProfile CustomerProfile?
-  vendorProfile   VendorProfile?
+  sellerProfile   SellerProfile?
   adminProfile    AdminProfile?
 
   @@index([email])
@@ -74,7 +74,7 @@ model ShippingAddress {
   @@map("shipping_addresses")
 }
 
-model VendorProfile {
+model SellerProfile {
   id        String  @id @default(uuid())
   userId    String  @unique
   firstName String
@@ -104,7 +104,7 @@ model VendorProfile {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([shopName])
-  @@map("vendor_profiles")
+  @@map("seller_profiles")
 }
 
 model ShopAddress {
@@ -118,8 +118,8 @@ model ShopAddress {
   lat Float?
   lng Float?
 
-  vendorProfileId String        @unique
-  vendorProfile   VendorProfile @relation(fields: [vendorProfileId], references: [id], onDelete: Cascade)
+  sellerProfileId String        @unique
+  sellerProfile   SellerProfile @relation(fields: [sellerProfileId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -149,6 +149,6 @@ enum UserRoles {
   SUPER_ADMIN
   ADMIN
   MODERATOR
-  VENDOR
+  SELLER
   CUSTOMER
 }

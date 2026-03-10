@@ -40,7 +40,7 @@ const createUserProfileValidation = z.object({
         UserRoles.SUPER_ADMIN,
         UserRoles.ADMIN,
         UserRoles.MODERATOR,
-        UserRoles.VENDOR,
+        UserRoles.SELLER,
         UserRoles.CUSTOMER,
       ],
       "Invalid user role",
